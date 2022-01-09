@@ -4,8 +4,10 @@ const express = require('express');
 
 //  Initialization
 const app = express();
+const FileManagerRouter = require('./routers/file_manager_router');
+const HomeRouter        = require('./routers/home_router');
 
-//#region Server
+//#region HTTP Server
 //  Middleware
 app.use(express.json());
 
@@ -27,7 +29,10 @@ app.get('/', (request, response) => {
     }));
 });
 
+app.use('/home', HomeRouter);
+app.use('/files', FileManagerRouter);
+
 app.listen(8080, () => {
     console.log('Server is now running in port 8080.');
-})
+});
 //#endregion
