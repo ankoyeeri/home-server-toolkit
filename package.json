@@ -1,0 +1,16 @@
+{
+  "name": "home-server-toolkit",
+  "version": "1.0.0",
+  "description": "Home Server Toolkit",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "ankoyeeri",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.2",
+    "mime-types": "^2.1.34"
+  }
+}
