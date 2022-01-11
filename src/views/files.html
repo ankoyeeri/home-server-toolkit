@@ -1,0 +1,156 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files</title>
+    <style>
+        .floating {
+            float: left;
+            width: auto;
+            margin-right: 100px;
+        }
+
+        .error {
+            clear: both;
+            color: red;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="floating" style="margin-top: 20px;">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+            
+                <tr v-for="file in files">
+                    <template v-if="file.type === 'go-back'">
+                        <td>
+                            <a v-on:click="goBackOnPath" href="#go_back"> {{file.item}} </a>
+                        </td>
+                    </template>
+                    <template v-if="file.type === 'dir'">
+                        <td>
+                            <button v-on:click="getFiles('/'+file.item)">
+                                {{file.item}}
+                            </button>
+                        </td>
+                    </template>
+                    <template v-if="file.type === 'file'">
+                        <td>
+                            <button v-on:click="getFile('/'+file.item, file.mime)">
+                                {{file.item}}
+                            </button>
+                        </td>
+                        <td>
+                            {{file.size}}
+                        </td>
+                    </template>
+                </tr>
+            </table>
+        </div>
+
+        <div class="floating"
+            v-if="file != null">
+            <fieldset>
+                <legend> {{ file.name }} </legend>
+                <div v-if="file.mime === 'text/plain'">
+                    <iframe :src="file.src"></iframe>
+                </div>
+                <div v-if="file.mime.search('image') == 0">
+                    <img :src="file.src" width="600">
+                </div>
+            </fieldset>
+        </div>
+
+        <div class="error">
+            <span v-if="error != null">
+                {{ error }}
+            </span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script>
+        Vue.component('todo-item', {
+            props: ['todo'],
+            template: '<li> {{todo.text}} </li>'
+        });
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                files: [],
+                file: null,
+                error: null,
+                pathURL: new URL('http://localhost:8080/files')
+            },
+            methods: {
+                getFiles: async function(path = new String()) {
+                    this.pathURL = parsePath(this.pathURL, path);
+                    this.error = null;
+
+                    fetch(this.pathURL, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(async response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                    })
+                    .then(data => {
+                        if (data) {
+                            this.files = data;
+                        } else {
+                            this.rollbackPath();
+                        }
+                    })
+                    .catch(error => {
+                        this.error = error;
+                        this.rollbackPath();
+                    });
+                },
+                getFile: async function(pathFile = new String(), mime = new String()) {
+                    this.file = {
+                        src: this.pathURL + pathFile,
+                        name: pathFile,
+                        mime: mime
+                    };
+                },
+                rollbackPath: async function() {
+                    const url = new URL(this.pathURL);
+                    let origin = url.origin;
+                    let path = url.pathname;
+
+                    let pathParsed = path.substring(0, path.lastIndexOf('/'));
+
+                    this.pathURL = new URL(pathParsed, origin).toString();
+                },
+                goBackOnPath: function() {
+                    this.rollbackPath();
+                    this.getFiles();
+                },
+                parsePath: parsePath
+            },
+            beforeMount() {
+                this.getFiles()
+            }
+        });
+
+        function parsePath(path = new String(), usrPath = new String()) {
+            return path += usrPath;
+        };
+    </script>
+</body>
+</html>
