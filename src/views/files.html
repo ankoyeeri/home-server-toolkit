@@ -20,10 +20,45 @@
         table {
             width: 150px;
         }
+
+        button {
+            background: none!important;
+            border: none;
+            padding: 0!important;
+            font-family: Arial, sans-serif;
+            color: rgb(8, 26, 182);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        button:hover {
+            color: rgb(64, 4, 133);
+        }
+
     </style>
 </head>
 <body>
     <div id="app">
+        <div>
+            <button v-on:click="isHidden_addFile = !isHidden_addFile"> Add file </button>
+            <div v-if="isHidden_addFile">
+                <fieldset>
+                    <legend>Add file</legend>
+                    <input type="file" @change="addFile" multiple>
+                </fieldset>                
+            </div>
+        </div>
+        <div>
+            <button v-on:click="isHidden_addDir = !isHidden_addDir; dirName = null">Add directory</button>
+            <div v-if="isHidden_addDir">
+                <fieldset>
+                    <legend>Add directory</legend>
+                    <input type="text" placeholder="Directory name" v-model="dirName">
+                    <button v-on:click="addDir">Add</button>
+                </fieldset> 
+            </div>
+        </div>
+
         <div class="floating" style="margin-top: 20px;">
             <table>
                 <tr>
@@ -34,7 +69,7 @@
                 <tr v-for="file in files">
                     <template v-if="file.type === 'go-back'">
                         <td>
-                            <a v-on:click="goBackOnPath" href="#go_back"> {{file.item}} </a>
+                            <button v-on:click="goBackOnPath"> {{file.item}} </button>
                         </td>
                     </template>
                     <template v-if="file.type === 'dir'">
@@ -62,6 +97,7 @@
             v-if="file != null">
             <fieldset>
                 <legend> {{ file.name }} </legend>
+                <button v-on:click="file = null">Close</button>
                 <div v-if="file.mime === 'text/plain'">
                     <iframe :src="file.src"></iframe>
                 </div>
@@ -80,18 +116,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <script>
-        Vue.component('todo-item', {
-            props: ['todo'],
-            template: '<li> {{todo.text}} </li>'
-        });
-
         var app = new Vue({
             el: '#app',
             data: {
                 files: [],
                 file: null,
                 error: null,
-                pathURL: new URL('http://localhost:8080/files')
+
+                pathURL: '/api/files',
+                pathURL_load: null,
+                dirName: null,
+
+                isHidden_addFile: false,
+                isHidden_addDir: false
             },
             methods: {
                 getFiles: async function(path = new String()) {
@@ -119,6 +156,8 @@
                     .catch(error => {
                         this.error = error;
                         this.rollbackPath();
+                        // if(this.pathURL != 'http://localhost:8080/api/files') {
+                        // }
                     });
                 },
                 getFile: async function(pathFile = new String(), mime = new String()) {
@@ -128,14 +167,43 @@
                         mime: mime
                     };
                 },
+                
+                addDir: function() {
+                    this.error = null
+
+                    fetch(this.pathURL + '/' + this.dirName, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            type: 'dir'
+                        })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            this.getFiles();
+                            this.dirName = null;
+                        }
+                    })
+                    .catch(error => {
+                        this.error = error;
+                    });
+                },
+                addFile: function(event) {
+                    console.log(event.target.files);
+                },
+                
                 rollbackPath: async function() {
-                    const url = new URL(this.pathURL);
-                    let origin = url.origin;
-                    let path = url.pathname;
+                    // const url = new URL(this.pathURL);
+                    // let origin = url.origin;
+                    // let path = url.pathname;
 
-                    let pathParsed = path.substring(0, path.lastIndexOf('/'));
+                    // let pathParsed = path.substring(0, path.lastIndexOf('/'));
 
-                    this.pathURL = new URL(pathParsed, origin).toString();
+                    // this.pathURL = new URL(pathParsed, origin).toString();
+
+                    this.pathURL = this.pathURL.substring(0, this.pathURL.lastIndexOf('/'));
                 },
                 goBackOnPath: function() {
                     this.rollbackPath();
