@@ -2,16 +2,13 @@
 const fs    = require('fs');
 const path  = require('path');
 const mime  = require('mime-types');
+const FileManagerConfigurator = require('./configuration');
 
 class FileManager {
-    constructor(configuration) {
-        console.log(configuration);
-        if (configuration) {
-            this.work_path = configuration.path;
-            this.current_path = configuration.path;
-        } else {
-            throw new Error('Configuration is empty');
-        }
+    constructor() {
+        // FileManagerConfigurator.buildConfig(configuration);
+        this.work_path = FileManagerConfigurator.path;
+        this.current_path = this.work_path;
     }
 
     async readPath(usrPath = new String()) {
@@ -81,8 +78,6 @@ class FileManager {
             throw new Error('Error: readFile: file is not exists');
         }
     }
-
-    
 }
 
 module.exports = FileManager;
