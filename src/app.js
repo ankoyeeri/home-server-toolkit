@@ -1,11 +1,19 @@
 //  Modules
-const express = require('express');
+const express   = require('express');
+const cors      = require('cors');
+const fm_config = require('./server_modules/file-manager/configuration');
 
+//  Config
+const config = require('./config/default.json');
+const port = config.app.port;
+const fm_path = config.server_modules.file_manager.storage_path;
 
 //  Initialization
 const app = express();
+fm_config.buildConfig({ path: fm_path });   //  File Manager configuration
 const FileManagerRouter = require('./routers/file_manager_router');
 const HomeRouter        = require('./routers/home_router');
+
 
 //#region HTTP Server
 //  --- Middleware ---
@@ -14,6 +22,7 @@ app.use(express.json());
 //  CORS enabling  
 app.use((request, response, next) => {
     response.setHeader('Access-Control-Allow-Origin', 'http://localhost:5500');
+    
     response.setHeader('Access-Control-Allow-Methods', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE');
     response.setHeader('Access-Control-Allow-Headers', 'X-Request-With, Content-Type');
     response.setHeader('Access-Control-Allow-Credentials', true);
@@ -40,9 +49,13 @@ app.get('/', (request, response) => {
 });
 
 app.use('/home', HomeRouter);
-app.use('/files', FileManagerRouter);
+app.post('/error', (request, response) => {
+    console.log(request.body);
+    response.send();
+});
+app.use('/api/files', FileManagerRouter);
 
-app.listen(8080, () => {
+app.listen(port, () => {
     console.log('Server is now running in port 8080.');
 });
 //#endregion

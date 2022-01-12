@@ -1,0 +1,10 @@
+{
+    "app": {
+        "port": 8080
+    },
+    "server_modules": {
+        "file_manager": {
+            "storage_path": "$HOME/home_server/files"
+        }
+    }
+}
