@@ -6,7 +6,6 @@ const FileManagerConfigurator = require('./configuration');
 
 class FileManager {
     constructor() {
-        // FileManagerConfigurator.buildConfig(configuration);
         this.work_path = FileManagerConfigurator.path;
         this.current_path = this.work_path;
     }

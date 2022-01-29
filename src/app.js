@@ -1,7 +1,6 @@
 //  Modules
 const express       = require('express');
 const fileUpload    = require('express-fileupload');
-const cors          = require('cors');
 const fm_config     = require('./server_modules/file-manager/configuration');
 
 //  Config
@@ -17,7 +16,7 @@ const HomeRouter        = require('./routers/home_router');
 
 
 //#region HTTP Server
-//  --- Middleware ---
+//  Middleware
 app.use(fileUpload({
     createParentPath: true
 }));

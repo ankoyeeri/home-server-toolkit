@@ -191,8 +191,6 @@
                     .catch(error => {
                         this.error = error;
                         this.rollbackPath();
-                        // if(this.pathURL != 'http://localhost:8080/api/files') {
-                        // }
                     });
                 },
                 getFile: async function(pathFile = new String(), mime = new String()) {
@@ -225,7 +223,6 @@
                         this.error = error;
                     });
                 },
-                //  TODO: add error handling
                 addFile: function(event) {
                     let data = new FormData(document.getElementById("fileForm"));
                     let getFiles = this.getFiles;
@@ -273,14 +270,6 @@
                 },
 
                 rollbackPath: async function() {
-                    // const url = new URL(this.pathURL);
-                    // let origin = url.origin;
-                    // let path = url.pathname;
-
-                    // let pathParsed = path.substring(0, path.lastIndexOf('/'));
-
-                    // this.pathURL = new URL(pathParsed, origin).toString();
-
                     this.pathURL = this.pathURL.substring(0, this.pathURL.lastIndexOf('/'));
                 },
                 goBackOnPath: function() {
