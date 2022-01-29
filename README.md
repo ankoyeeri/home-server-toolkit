@@ -55,6 +55,10 @@ Run setup-script:
 * You can use `npm start` to directly start server instead of using script.
 
 
+By default server is running at `localhost:8080`. Open web-page throught `localhost:8080/files` route.
+
+
+
 # Configuration
 To change server port or work path see `default.json` in `src/config/`:
 ```json
