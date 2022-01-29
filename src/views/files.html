@@ -17,8 +17,10 @@
             margin-top: 20px;
         }
 
-        table {
-            width: 150px;
+        #boxes {
+            content: "";
+            display: table;
+            clear: both;
         }
 
         button {
@@ -35,30 +37,51 @@
             color: rgb(64, 4, 133);
         }
 
+        .tool-container {
+            float: left;
+            width: auto;
+            padding: 0 10px;
+            border-right: 1px solid black;
+        }
+
     </style>
 </head>
 <body>
     <div id="app">
-        <div>
-            <button v-on:click="isHidden_addFile = !isHidden_addFile"> Add file </button>
-            <div v-if="isHidden_addFile">
-                <fieldset>
-                    <legend>Add file</legend>
-                    <input type="file" @change="addFile" multiple>
-                </fieldset>                
-            </div>
-        </div>
-        <div>
-            <button v-on:click="isHidden_addDir = !isHidden_addDir; dirName = null">Add directory</button>
-            <div v-if="isHidden_addDir">
-                <fieldset>
-                    <legend>Add directory</legend>
-                    <input type="text" placeholder="Directory name" v-model="dirName">
-                    <button v-on:click="addDir">Add</button>
-                </fieldset> 
-            </div>
-        </div>
+        <main id="boxes">
+            <div>
+                <div>
+                    <div>
+                        <button v-on:click="isVisible_addFile = !isVisible_addFile"> Add file </button>
+                        <div v-if="isVisible_addFile">
+                            <fieldset>
+                                <legend>Add file</legend>
+                                <form id="fileForm" enctype="multipart/form-data">
+                                    <input id="fileInput" type="file" name="file">
+                                    <input type="button" value="Upload" v-on:click="addFile">
+                                </form>
+                            </fieldset>
+                        </div>
+                    </div>
 
+                    <hr>
+
+                    <div style="margin-top: 10px;">
+                        <button v-on:click="isVisible_addDir = !isVisible_addDir; dirName = null">Add directory</button>
+                        <div v-if="isVisible_addDir">
+                            <fieldset>
+                                <legend>Add directory</legend>
+                                <input type="text" placeholder="Directory name" v-model="dirName">
+                                <button v-on:click="addDir">Add</button>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <hr>
+
+        <!-- Files table -->
         <div class="floating" style="margin-top: 20px;">
             <table>
                 <tr>
@@ -73,28 +96,40 @@
                         </td>
                     </template>
                     <template v-if="file.type === 'dir'">
-                        <td>
+                        <td style="width: 70%;">
                             <button v-on:click="getFiles('/'+file.item)">
                                 {{file.item}}
                             </button>
                         </td>
+                        <td></td>
+                        <td style="padding-left: 20px;">
+                            <button v-on:click="deleteItem(file.item, 'dir')">
+                                🗑️
+                            </button>
+                        </td>
                     </template>
                     <template v-if="file.type === 'file'">
-                        <td>
+                        <td style="width: 70%;">
                             <button v-on:click="getFile('/'+file.item, file.mime)">
                                 {{file.item}}
                             </button>
                         </td>
                         <td>
-                            {{file.size}}
+                            {{file.size}} B
+                        </td>
+                        <td style="padding-left: 20px;">
+                            <button v-on:click="deleteItem(file.item, 'file')">
+                                🗑️
+                            </button>
                         </td>
                     </template>
                 </tr>
             </table>
         </div>
 
+        <!-- File data container -->
         <div class="floating"
-            v-if="file != null">
+            v-if="file != null" style="width: 100%; height: auto;">
             <fieldset>
                 <legend> {{ file.name }} </legend>
                 <button v-on:click="file = null">Close</button>
@@ -102,7 +137,7 @@
                     <iframe :src="file.src"></iframe>
                 </div>
                 <div v-if="file.mime.search('image') == 0">
-                    <img :src="file.src" width="600">
+                    <img :src="file.src" width="100%" height="auto" style="max-width: 600px;">
                 </div>
             </fieldset>
         </div>
@@ -127,8 +162,8 @@
                 pathURL_load: null,
                 dirName: null,
 
-                isHidden_addFile: false,
-                isHidden_addDir: false
+                isVisible_addFile: false,
+                isVisible_addDir: false
             },
             methods: {
                 getFiles: async function(path = new String()) {
@@ -171,7 +206,7 @@
                 addDir: function() {
                     this.error = null
 
-                    fetch(this.pathURL + '/' + this.dirName, {
+                    fetch(this.pathURL + '/' + this.dirName + '?type=dir', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -190,10 +225,53 @@
                         this.error = error;
                     });
                 },
+                //  TODO: add error handling
                 addFile: function(event) {
-                    console.log(event.target.files);
+                    let data = new FormData(document.getElementById("fileForm"));
+                    let getFiles = this.getFiles;
+                    
+
+                    if (data.get('file').name) {
+                        let req = new XMLHttpRequest();
+
+                        req.open('POST', this.pathURL + '/' + data.get('file').name + '?type=file');
+                        req.send(data);
+                        req.onreadystatechange = function () {
+                            if (req.readyState === 4) {
+                                if (req.status === 200) {
+                                    console.log('success');
+                                    getFiles();
+                                    document.getElementById("fileInput").value = '';
+                                } else {
+
+                                    console.log('failed');
+                                }
+                            }
+                        }
+                    }
+
+                    console.log(this.pathURL);
+
                 },
-                
+                deleteItem: function(itemPath, itemType) {
+                    let delPath = this.pathURL + '/' + itemPath
+                    console.log(delPath);
+
+                    if (itemType === 'dir' || itemType === 'file') {
+                        fetch(delPath + `?type=${itemType}`, {
+                            method: 'DELETE'
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                this.getFiles();
+                            }
+                        })
+                        .catch(error => {
+                            this.error = error;
+                        });
+                    }
+                },
+
                 rollbackPath: async function() {
                     // const url = new URL(this.pathURL);
                     // let origin = url.origin;
@@ -213,6 +291,9 @@
             },
             beforeMount() {
                 this.getFiles()
+            },
+            created() {
+                // setInterval(this.getFiles, 10000);
             }
         });
 

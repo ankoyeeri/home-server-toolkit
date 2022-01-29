@@ -1,7 +1,8 @@
 //  Modules
-const express   = require('express');
-const cors      = require('cors');
-const fm_config = require('./server_modules/file-manager/configuration');
+const express       = require('express');
+const fileUpload    = require('express-fileupload');
+const cors          = require('cors');
+const fm_config     = require('./server_modules/file-manager/configuration');
 
 //  Config
 const config = require('./config/default.json');
@@ -17,7 +18,11 @@ const HomeRouter        = require('./routers/home_router');
 
 //#region HTTP Server
 //  --- Middleware ---
+app.use(fileUpload({
+    createParentPath: true
+}));
 app.use(express.json());
+
 
 //  CORS enabling  
 app.use((request, response, next) => {
@@ -56,6 +61,6 @@ app.post('/error', (request, response) => {
 app.use('/api/files', FileManagerRouter);
 
 app.listen(port, () => {
-    console.log('Server is now running in port 8080.');
+    console.log(`Server is now running at port ${port}.`);
 });
 //#endregion
