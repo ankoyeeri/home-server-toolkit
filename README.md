@@ -71,8 +71,6 @@ To change server port or work path see `default.json` in `src/config/`:
             "storage_path": "$HOME/home_server/files"
         }
     }
-    
-    ...
 }
 ```
 You can use `$HOME` variable in path definition instead of direct path.
