@@ -35,7 +35,8 @@ app.use((request, response, next) => {
 
 
 //  --- Routing ---
-app.get('/', (request, response) => {
+app.use('/', HomeRouter);
+app.get('/server/info', (request, response) => {
     response.header({
         'Content-Type': 'application/json'
     });
@@ -51,8 +52,6 @@ app.get('/', (request, response) => {
         }
     }));
 });
-
-app.use('/home', HomeRouter);
 app.post('/error', (request, response) => {
     console.log(request.body);
     response.send();
